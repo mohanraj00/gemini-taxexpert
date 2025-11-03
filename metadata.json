@@ -1,5 +1,5 @@
 {
-  "name": "Tax Research Expert",
-  "description": "An AI-powered application that analyzes tax scenarios, identifies key implications, researches applicable tax law, and generates professional tax memos and client letters.",
+  "name": "Gemini TaxBro",
+  "description": "Your AI-powered bro for analyzing tax scenarios, identifying key implications, researching tax law, and generating professional tax memos and client letters.",
   "requestFramePermissions": []
 }
