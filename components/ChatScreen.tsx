@@ -142,6 +142,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
   
   const showPullKeyFactsAction = hasInput && !keyFactsGenerated;
   const showAnalyzeSituationsAction = keyFactsGenerated && !taxSituationsIdentified;
+  const nextSituationToResearch = allTaxSituations.find(s => !researchedSituations.has(s.id));
 
 
   return (
@@ -158,7 +159,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
                   </div>
                   {msg.keyFacts && <KeyFactsWidget facts={msg.keyFacts} />}
-                  {msg.taxSituations && <TaxSituationsWidget situations={msg.taxSituations} onResearch={onResearchSituation} researchedSituations={researchedSituations} />}
+                  {msg.taxSituations && <TaxSituationsWidget situations={msg.taxSituations} onResearch={onResearchSituation} researchedSituations={researchedSituations} onSuggestResearch={(topic) => onSendMessage(`I'd like to research another topic: "${topic}"`)} />}
                   {msg.researchAnalysis && <ResearchAnalysisWidget analysis={msg.researchAnalysis} />}
                 </div>
                 {msg.role === 'user' && <div className="w-8 h-8 rounded-full bg-indigo-200 text-indigo-800 flex items-center justify-center font-bold text-sm flex-shrink-0">You</div>}
@@ -195,7 +196,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
                     </div>
                 </div>
             )}
-            <form ref={formRef} id="chat-form" onSubmit={handleSendMessage} className="relative">
+            <form ref={formRef} id="chat-form" onSubmit={handleSendMessage} className="relative flex items-center bg-white border border-slate-300 rounded-2xl focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all shadow-sm">
               <input
                   type="file"
                   accept={acceptedFileTypes}
@@ -213,15 +214,15 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
                 onKeyDown={handleKeyDown}
                 onPaste={handlePaste}
                 placeholder="Ask me anything about your tax scenario..."
-                className="w-full p-3 pr-28 bg-white text-slate-800 border border-slate-300 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none"
+                className="flex-grow p-3 bg-transparent text-slate-800 focus:outline-none transition resize-none"
                 style={{maxHeight: '200px'}}
                 disabled={isLoading}
               />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-1">
+              <div className="flex items-center space-x-1 pr-2">
                 <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isLoading} className="p-2 rounded-full text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors flex-shrink-0 disabled:opacity-50">
                    <PlusIcon className="h-6 w-6" />
                 </button>
-                <button type="submit" disabled={isLoading || (!newMessage.trim() && files.length === 0)} className="p-3 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-slate-400 transition-colors flex-shrink-0">
+                <button type="submit" disabled={isLoading || (!newMessage.trim() && files.length === 0)} className="p-2.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-slate-400 transition-colors flex-shrink-0">
                   {isLoading ? <LoadingSpinner className="h-5 w-5 animate-spin" /> : <PaperAirplaneIcon className="h-5 w-5" />}
                 </button>
               </div>
@@ -248,6 +249,17 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
                     >
                         <BeakerIcon className="mr-2 h-5 w-5" />
                         Identify Tax Situations
+                    </button>
+                )}
+                 {taxSituationsIdentified && nextSituationToResearch && !isLoading && (
+                    <button
+                        type="button"
+                        onClick={() => onResearchSituation(nextSituationToResearch)}
+                        disabled={isLoading}
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-teal-700 bg-teal-100 hover:bg-teal-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:bg-slate-100 disabled:text-slate-500 transition-colors"
+                    >
+                        <BookOpenIcon className="mr-2 h-5 w-5" />
+                        Research: {nextSituationToResearch.title}
                     </button>
                 )}
             </div>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TaxSituation } from '../types';
 import { CheckCircleIcon, CircleIcon, XMarkIcon } from './icons/Icons';
@@ -51,28 +50,31 @@ const ChecklistPanel: React.FC<ChecklistPanelProps> = ({ keyFactsGenerated, taxS
                                 {step.label}
                             </span>
                         </div>
-                        {step.label === 'Identify Tax Situations' && taxSituationsIdentified && allTaxSituations.length > 0 && (
-                             <ul className="mt-3 pl-9 space-y-2 border-l border-slate-200 ml-3">
-                                {allTaxSituations.map((situation) => {
-                                    const isResearched = researchedSituations.has(situation.id);
-                                    return (
-                                        <li key={situation.id} className="flex items-start text-sm">
-                                            {isResearched ? (
-                                                <CheckCircleIcon className="h-4 w-4 mr-3 mt-0.5 text-teal-500 flex-shrink-0" />
-                                            ) : (
-                                                <CircleIcon className="h-4 w-4 mr-3 mt-0.5 text-slate-400 flex-shrink-0" />
-                                            )}
-                                            <span className={`transition-colors ${isResearched ? 'line-through text-slate-500' : 'text-slate-600'}`}>
-                                                {situation.title}
-                                            </span>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
                     </li>
                 ))}
             </ul>
+            {taxSituationsIdentified && allTaxSituations.length > 0 && (
+                 <div className="mt-4 pt-4 border-t border-slate-200/60">
+                    <h3 className="text-xs font-semibold uppercase text-slate-500 mb-3 tracking-wider ml-1">Research</h3>
+                    <ul className="space-y-3">
+                        {allTaxSituations.map((situation) => {
+                            const isResearched = researchedSituations.has(situation.id);
+                            return (
+                                <li key={situation.id} className="flex items-start text-sm">
+                                    {isResearched ? (
+                                        <CheckCircleIcon className="h-5 w-5 mr-3 mt-px text-teal-500 flex-shrink-0" />
+                                    ) : (
+                                        <CircleIcon className="h-5 w-5 mr-3 mt-px text-slate-400 flex-shrink-0" />
+                                    )}
+                                    <span className={`transition-colors ${isResearched ? 'line-through text-slate-500' : 'text-slate-600'}`}>
+                                        {situation.title}
+                                    </span>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
+            )}
         </div>
     );
 };
