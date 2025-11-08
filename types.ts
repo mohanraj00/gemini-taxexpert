@@ -29,3 +29,19 @@ export interface ChatMessage {
     content: string;
   };
 }
+
+export interface RawTaxSituation {
+    title: string;
+    description: string;
+}
+
+export interface KeyFactsResponse {
+    summary: string;
+    keyFacts: KeyFactCategory[];
+    clarifyingQuestions?: string[];
+}
+
+export interface TaxSituationsResponse {
+    summary: string;
+    taxSituations: RawTaxSituation[];
+}

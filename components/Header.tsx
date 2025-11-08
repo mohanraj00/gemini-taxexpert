@@ -1,25 +1,23 @@
 
 import React from 'react';
 import { SparklesIcon, ClipboardListIcon } from './icons/Icons';
+import { useAppContext } from '../contexts/AppContext';
 
-interface HeaderProps {
-    onToggleChecklist: () => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ onToggleChecklist }) => {
+const Header: React.FC = () => {
+  const { toggleChecklist } = useAppContext();
   return (
-    <header className="bg-gradient-to-r from-indigo-500 to-cyan-500 shadow-md">
-      <div className="container mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-        <div className="flex items-center">
-            <SparklesIcon className="h-8 w-8 text-white mr-3" />
-            <h1 className="text-2xl font-bold text-white tracking-tight">
+    <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-sm border-b border-zinc-200/80">
+      <div className="px-4 md:px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+            <SparklesIcon className="h-7 w-7 text-indigo-500" />
+            <h1 className="text-xl font-extrabold text-zinc-800 tracking-tight">
               Gemini TaxBro
             </h1>
         </div>
         <div className="md:hidden">
             <button 
-                onClick={onToggleChecklist} 
-                className="text-white p-2 rounded-md hover:bg-white/20 transition-colors"
+                onClick={toggleChecklist} 
+                className="text-zinc-500 p-2 rounded-lg hover:bg-zinc-100 transition-colors"
                 aria-label="Toggle research checklist"
             >
                 <ClipboardListIcon className="h-6 w-6" />
