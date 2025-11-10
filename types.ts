@@ -15,6 +15,35 @@ export interface TaxSituation {
   description: string;
 }
 
+export interface ResearchAnalysis {
+  situationTitle: string;
+  summary: string;
+  applicableLaw: {
+    citation: string;
+    description: string;
+  }[];
+  keyImplications: {
+    implication: string;
+    justification?: {
+      text: string;
+      url?: string;
+    };
+  }[];
+  planningOpportunities: {
+    opportunity: string;
+    justification?: {
+      text: string;
+      url?: string;
+    };
+  }[];
+}
+
+export interface GeneratedDocument {
+  type: 'memo' | 'letter';
+  title: string;
+  content: string;
+}
+
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
@@ -24,10 +53,10 @@ export interface ChatMessage {
   }[];
   keyFacts?: KeyFactCategory[];
   taxSituations?: TaxSituation[];
-  researchAnalysis?: {
-    situationTitle: string;
-    content: string;
-  };
+  researchAnalysis?: ResearchAnalysis;
+  generatedDocument?: GeneratedDocument;
+  isKeyFactsUpdate?: boolean;
+  newTaxSituation?: TaxSituation;
 }
 
 export interface RawTaxSituation {
@@ -44,4 +73,9 @@ export interface KeyFactsResponse {
 export interface TaxSituationsResponse {
     summary: string;
     taxSituations: RawTaxSituation[];
+}
+
+export interface AppError {
+  id: number;
+  message: string;
 }

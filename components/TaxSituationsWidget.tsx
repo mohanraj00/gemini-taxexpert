@@ -31,10 +31,10 @@ const TaxSituationsWidget: React.FC<TaxSituationsWidgetProps> = ({ situations })
     const firstUnresearchedIndex = situations.findIndex(s => !researchedSituations.has(s.id));
 
     return (
-        <div className="border-t-4 border-indigo-400 mt-4 p-4 bg-zinc-50/50">
+        <div className="border-t-4 border-teal-400 mt-4 p-4 bg-zinc-50/50">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="flex items-center text-sm font-semibold text-indigo-800">
-                    <LightBulbIcon className="h-5 w-5 mr-2 text-indigo-500" />
+                <h3 className="flex items-center text-sm font-semibold text-teal-800">
+                    <LightBulbIcon className="h-5 w-5 mr-2 text-teal-600" />
                     Potential Tax Situations to Explore
                 </h3>
             </div>
@@ -59,7 +59,7 @@ const TaxSituationsWidget: React.FC<TaxSituationsWidgetProps> = ({ situations })
                                     <button
                                         onClick={() => researchSituationHandler(situation)}
                                         disabled={!isResearchable}
-                                        className="ml-4 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-zinc-200 disabled:text-zinc-500 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                                        className="ml-4 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:bg-zinc-200 disabled:text-zinc-500 disabled:cursor-not-allowed transition-colors flex-shrink-0"
                                     >
                                         <BookOpenIcon className="mr-1.5 h-4 w-4" />
                                         Research
@@ -84,7 +84,7 @@ const TaxSituationsWidget: React.FC<TaxSituationsWidgetProps> = ({ situations })
                         value={newTopic}
                         onChange={(e) => setNewTopic(e.target.value)}
                         placeholder="Add another research topic..." 
-                        className="w-full pl-10 pr-20 py-2 bg-white rounded-full border border-zinc-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm text-zinc-700 placeholder-zinc-500"
+                        className="w-full pl-10 pr-20 py-2 bg-white rounded-full border border-zinc-300 shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all text-sm text-zinc-700 placeholder-zinc-500"
                     />
                     <button 
                         type="submit" 

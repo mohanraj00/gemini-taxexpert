@@ -32,7 +32,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ hasInput }) => {
         return null;
     }
 
-    const buttonBaseClasses = "inline-flex items-center px-4 py-2 border border-zinc-200/80 text-sm font-medium rounded-full text-zinc-800 bg-white hover:bg-indigo-50 hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-zinc-100 disabled:text-zinc-500 transition-colors";
+    const buttonBaseClasses = "inline-flex items-center px-4 py-2 border border-zinc-200/80 text-sm font-medium rounded-full text-zinc-800 bg-white hover:bg-teal-50 hover:border-teal-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:bg-zinc-100 disabled:text-zinc-500 transition-colors";
     const iconBaseClasses = "mr-2 h-5 w-5 text-zinc-500";
 
     return (

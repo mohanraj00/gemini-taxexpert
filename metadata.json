@@ -1,5 +1,5 @@
 {
-  "name": "Gemini TaxBro",
-  "description": "Your AI-powered bro for analyzing tax scenarios, identifying key implications, researching tax law, and generating professional tax memos and client letters.",
+  "name": "Tax Inference",
+  "description": "Your AI-powered assistant for analyzing tax scenarios, identifying key implications, researching tax law, and generating professional tax memos and client letters.",
   "requestFramePermissions": []
 }

@@ -44,6 +44,7 @@ const ChatInputArea: React.FC = () => {
             sendMessage(textForSubmission, files.length > 0 ? files : undefined);
             setNewMessage('');
             setFiles([]);
+            textareaRef.current?.focus();
         }
     };
 
@@ -109,7 +110,7 @@ const ChatInputArea: React.FC = () => {
             
             <ActionButtons hasInput={hasInput} />
 
-            <form ref={formRef} id="chat-form" onSubmit={handleSendMessage} className="relative flex items-center bg-white border border-zinc-200/80 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 transition-all p-1">
+            <form ref={formRef} id="chat-form" onSubmit={handleSendMessage} className="relative flex items-center bg-white border border-zinc-200/80 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-teal-500 transition-all p-1">
                 <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isLoading} className="p-3 rounded-full text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 transition-colors flex-shrink-0 disabled:opacity-50">
                    <PlusIcon className="h-6 w-6" />
                 </button>
@@ -134,7 +135,7 @@ const ChatInputArea: React.FC = () => {
                     style={{maxHeight: '200px'}}
                     disabled={isLoading}
                 />
-                <button type="submit" disabled={isLoading || !hasInput} className="p-3 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed transition-colors flex-shrink-0">
+                <button type="submit" disabled={isLoading || !hasInput} className="p-3 rounded-xl bg-teal-600 text-white hover:bg-teal-700 disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed transition-colors flex-shrink-0">
                     {isLoading ? <LoadingSpinner className="h-6 w-6 animate-spin text-zinc-500" /> : <SendIcon className="h-6 w-6" />}
                 </button>
             </form>
