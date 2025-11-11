@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircleIcon, XMarkIcon, DocumentDownloadIcon, LoadingSpinner, BookOpenIcon, DocumentDuplicateIcon, DocumentTextIcon, ChatBubbleLeftRightIcon } from './icons/Icons';
+import { CheckCircleIcon, XMarkIcon, DocumentDownloadIcon, LoadingSpinner, BookOpenIcon, DocumentDuplicateIcon, DocumentTextIcon, ChatBubbleLeftRightIcon, CheckIcon, CircleIcon } from './icons/Icons';
 import { useAppContext } from '../contexts/AppContext';
 
 interface ChecklistPanelProps {
@@ -15,6 +15,9 @@ const ChecklistPanel: React.FC<ChecklistPanelProps> = ({ onClose }) => {
         researchAnalyses,
         cachedDocuments,
         currentAction,
+        objectives,
+        completedObjectives,
+        toggleObjectiveCompletion,
         handleExportKeyFacts, 
         handleExportTaxSituations, 
         handleExportResearchAnalysis,
@@ -208,6 +211,37 @@ const ChecklistPanel: React.FC<ChecklistPanelProps> = ({ onClose }) => {
                                                 </button>
                                             </div>
                                         )}
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </div>
+                )}
+                {objectives.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-zinc-200/60">
+                        <h3 className="text-sm font-semibold text-zinc-800 mb-2">Case Objectives</h3>
+                        <ul className="space-y-1">
+                            {objectives.map((objective) => {
+                                const isCompleted = completedObjectives.has(objective.id);
+                                return (
+                                    <li key={objective.id} className="flex items-center justify-between group">
+                                        <button
+                                            onClick={() => toggleObjectiveCompletion(objective.id)}
+                                            disabled={!!currentAction}
+                                            aria-label={`${isCompleted ? 'Mark' : 'Mark'} ${objective.title} as ${isCompleted ? 'incomplete' : 'complete'}`}
+                                            className="flex-grow flex items-start text-left text-sm p-1 rounded-lg transition-colors group-hover:bg-purple-50 cursor-pointer disabled:opacity-60 w-full"
+                                        >
+                                            <div className="relative w-4 h-4 mr-2 mt-0.5 flex items-center justify-center flex-shrink-0">
+                                                {isCompleted ? (
+                                                    <CheckIcon className="h-4 w-4 text-purple-600" />
+                                                ) : (
+                                                    <CircleIcon className="h-4 w-4 text-zinc-400 group-hover:text-purple-500" />
+                                                )}
+                                            </div>
+                                            <span className={`flex-grow ${isCompleted ? 'text-purple-700 line-through' : 'text-zinc-600'}`}>
+                                                {objective.title}
+                                            </span>
+                                        </button>
                                     </li>
                                 );
                             })}

@@ -5,7 +5,7 @@ import ActionButtons from './ActionButtons';
 import { useAppContext } from '../contexts/AppContext';
 
 const ChatInputArea: React.FC = () => { 
-    const { isLoading, sendMessage } = useAppContext();
+    const { isLoading, sendMessage, isAwaitingObjectives } = useAppContext();
     const [newMessage, setNewMessage] = useState('');
     const [files, setFiles] = useState<File[]>([]);
     const [previews, setPreviews] = useState<Map<File, string>>(new Map());
@@ -85,6 +85,9 @@ const ChatInputArea: React.FC = () => {
 
     const acceptedFileTypes = "image/*,.pdf,.md,.doc,.docx,.txt,.xls,.xlsx,application/pdf,text/markdown,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     const hasInput = newMessage.trim() !== '' || files.length > 0;
+    const placeholder = isAwaitingObjectives 
+        ? "My main goal is to..." 
+        : "Ask me anything, or upload a document to start...";
 
     return (
         <div className="flex-shrink-0 pt-4">
@@ -130,7 +133,7 @@ const ChatInputArea: React.FC = () => {
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={handleKeyDown}
                     onPaste={handlePaste}
-                    placeholder="Ask me anything, or upload a document to start..."
+                    placeholder={placeholder}
                     className="flex-grow px-2 py-3 bg-transparent text-zinc-800 placeholder-zinc-500 focus:outline-none transition resize-none leading-relaxed"
                     style={{maxHeight: '200px'}}
                     disabled={isLoading}

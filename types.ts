@@ -1,4 +1,5 @@
 
+
 export interface KeyFact {
   label: string;
   value: string | number;
@@ -44,6 +45,12 @@ export interface GeneratedDocument {
   content: string;
 }
 
+export interface Objective {
+  id: string;
+  title: string;
+  description: string;
+}
+
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
@@ -57,11 +64,18 @@ export interface ChatMessage {
   generatedDocument?: GeneratedDocument;
   isKeyFactsUpdate?: boolean;
   newTaxSituation?: TaxSituation;
+  objectives?: Objective[];
 }
 
 export interface RawTaxSituation {
     title: string;
     description: string;
+}
+
+export interface ObjectivesResponse {
+  summary: string;
+  objectives: Objective[];
+  clarifyingQuestions?: string[];
 }
 
 export interface KeyFactsResponse {

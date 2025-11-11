@@ -1,4 +1,5 @@
 
+
 import { Type, FunctionDeclaration } from "@google/genai";
 
 export const keyFactsSchema = {
@@ -203,6 +204,42 @@ export const generatedDocumentSchema = {
         }
     },
     required: ["content"]
+};
+
+export const refinedObjectivesSchema = {
+    type: Type.OBJECT,
+    properties: {
+        summary: {
+            type: Type.STRING,
+            description: "A brief, encouraging summary. If returning objectives, confirm you've refined the user's goals. If asking questions, explain that you need a bit more clarity."
+        },
+        objectives: {
+            type: Type.ARRAY,
+            description: "A list of refined, synthesized objectives based on the user's input and the research context. This should be empty if asking clarifying questions.",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    title: {
+                        type: Type.STRING,
+                        description: "A concise title for the objective (e.g., 'Maximize Section 121 Exclusion', 'Determine Optimal Filing Status')."
+                    },
+                    description: {
+                        type: Type.STRING,
+                        description: "A brief, one-sentence explanation of what this objective entails."
+                    }
+                },
+                required: ["title", "description"]
+            }
+        },
+        clarifyingQuestions: {
+            type: Type.ARRAY,
+            description: "A list of questions to ask the user if their stated objectives are too vague or ambiguous. This should only be populated if you cannot create a clear, actionable list of objectives from their input.",
+            items: {
+                type: Type.STRING
+            }
+        }
+    },
+    required: ["summary", "objectives"]
 };
 
 export const addResearchTopicTool: FunctionDeclaration = {

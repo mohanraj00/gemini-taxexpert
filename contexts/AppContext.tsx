@@ -1,6 +1,7 @@
 
+
 import React, { createContext, useContext, ReactNode } from 'react';
-import { ChatMessage, KeyFactCategory, TaxSituation, AppError, ResearchAnalysis, GeneratedDocument } from '../types';
+import { ChatMessage, KeyFactCategory, TaxSituation, AppError, ResearchAnalysis, GeneratedDocument, Objective } from '../types';
 import { useAppLogic } from '../hooks/useAppLogic';
 
 export interface AppContextType {
@@ -19,6 +20,9 @@ export interface AppContextType {
     allTaxSituations: TaxSituation[];
     latestKeyFacts: KeyFactCategory[] | undefined;
     exportModalAnalysis: ResearchAnalysis | null;
+    objectives: Objective[];
+    completedObjectives: Set<string>;
+    isAwaitingObjectives: boolean;
     sendMessage: (text: string, files?: File[]) => Promise<void>;
     analyzeTaxSituations: () => Promise<void>;
     reAnalyzeKeyFacts: () => Promise<void>;
@@ -34,6 +38,7 @@ export interface AppContextType {
     removeError: (id: number) => void;
     openExportModal: (analysis: ResearchAnalysis, situationId: string) => void;
     closeExportModal: () => void;
+    toggleObjectiveCompletion: (objectiveId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);

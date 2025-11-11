@@ -50,6 +50,9 @@ const ChatScreen: React.FC = () => {
         case ActionNames.IDENTIFY_SITUATIONS:
             message = 'Identifying tax situations...';
             break;
+        case ActionNames.REFINE_OBJECTIVES:
+            message = 'Refining objectives...';
+            break;
         case ActionNames.CHAT:
             message = 'Thinking...';
             break;

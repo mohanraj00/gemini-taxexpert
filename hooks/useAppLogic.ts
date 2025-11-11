@@ -1,7 +1,8 @@
 
+
 import { useState, useMemo } from 'react';
-import { ChatMessage, KeyFactCategory, TaxSituation, AppError, ResearchAnalysis, GeneratedDocument } from '../types';
-import { getAiResponse, generateKeyFacts, generateTaxSituations, researchSituation, regenerateKeyFacts, generateTaxMemo, generateClientLetter, validateResearchAnalysis } from '../services/geminiService';
+import { ChatMessage, KeyFactCategory, TaxSituation, AppError, ResearchAnalysis, GeneratedDocument, Objective } from '../types';
+import { getAiResponse, generateKeyFacts, generateTaxSituations, researchSituation, regenerateKeyFacts, generateTaxMemo, generateClientLetter, validateResearchAnalysis, refineUserObjectives } from '../services/geminiService';
 import { ActionNames } from '../constants';
 import { fileToBase64 } from '../utils/fileUtils';
 import { AppContextType } from '../contexts/AppContext';
@@ -23,6 +24,9 @@ export const useAppLogic = (): AppContextType => {
     const [cachedDocuments, setCachedDocuments] = useState<{ [situationId: string]: CachedDocuments }>({});
     const [exportModalAnalysis, setExportModalAnalysis] = useState<ResearchAnalysis | null>(null);
     const [exportModalSituationId, setExportModalSituationId] = useState<string | null>(null);
+    const [objectives, setObjectives] = useState<Objective[]>([]);
+    const [completedObjectives, setCompletedObjectives] = useState<Set<string>>(new Set());
+    const [isAwaitingObjectives, setIsAwaitingObjectives] = useState<boolean>(false);
 
     const openExportModal = (analysis: ResearchAnalysis, situationId: string) => {
         setExportModalAnalysis(analysis);
@@ -67,7 +71,40 @@ export const useAppLogic = (): AppContextType => {
         }
     };
 
+    const handleObjectivesSubmission = async (userObjectivesText: string) => {
+        await handleApiCall(async () => {
+            const userMessage: ChatMessage = { role: 'user', text: userObjectivesText };
+            setChatHistory(prev => [...prev, userMessage]);
+
+            const historyForApi = [...chatHistory, userMessage];
+            
+            const { summary, objectives: newObjectives, clarifyingQuestions } = await refineUserObjectives(historyForApi, researchAnalyses, userObjectivesText);
+
+            if (clarifyingQuestions && clarifyingQuestions.length > 0) {
+                const clarificationMessage: ChatMessage = {
+                    role: 'model',
+                    text: summary + "\n\nTo make sure I understand correctly, could you clarify a few things?\n\n" + clarifyingQuestions.map(q => `- ${q}`).join('\n')
+                };
+                setChatHistory(prev => [...prev, clarificationMessage]);
+            } else {
+                const objectivesMessage: ChatMessage = {
+                    role: 'model',
+                    text: summary,
+                    objectives: newObjectives,
+                };
+                setChatHistory(prev => [...prev, objectivesMessage]);
+                setObjectives(newObjectives);
+                setIsAwaitingObjectives(false);
+            }
+        }, "I had some trouble refining your objectives. Could you please state them again?", ActionNames.REFINE_OBJECTIVES);
+    };
+
     const sendMessage = async (text: string, files?: File[]) => {
+        if (isAwaitingObjectives) {
+            await handleObjectivesSubmission(text);
+            return;
+        }
+
         if (!text.trim() && (!files || files.length === 0)) {
             return;
         }
@@ -102,8 +139,6 @@ export const useAppLogic = (): AppContextType => {
             }
         }
 
-        // For subsequent messages with files, we create a more explicit prompt for the model
-        // to ensure it knows to re-evaluate the facts, but we don't show this to the user.
         let textForApi = text;
         if (!isFirstUserMessage && filesData) {
             textForApi = `The user has provided new information and attached ${files.length} file(s). Please use the 'update_key_facts' tool to re-evaluate the scenario. User's message: "${text}"`;
@@ -138,6 +173,8 @@ export const useAppLogic = (): AppContextType => {
                 if (aiMessage.isKeyFactsUpdate) {
                     setResearchAnalyses({});
                     setCachedDocuments({});
+                    setObjectives([]);
+                    setCompletedObjectives(new Set());
                     setChatHistory(prev => {
                         const clearedHistory = prev.map(msg => {
                             const { taxSituations, researchAnalysis, ...rest } = msg;
@@ -209,6 +246,8 @@ export const useAppLogic = (): AppContextType => {
         await handleApiCall(async () => {
             setResearchAnalyses({});
             setCachedDocuments({});
+            setObjectives([]);
+            setCompletedObjectives(new Set());
             const { keyFacts } = await regenerateKeyFacts(chatHistory);
             
             const summaryText = "Alright, I've taken another look and refreshed the key facts based on our conversation so far. Here's the updated list:";
@@ -259,12 +298,25 @@ export const useAppLogic = (): AppContextType => {
                     text: `Roger that! I've done a deep dive on **${situation.title}**. Here's what I found:`,
                     researchAnalysis: lastAnalysis,
                 };
-    
-                setResearchAnalyses(prev => ({
-                    ...prev,
-                    [situation.id]: lastAnalysis!,
-                }));
+                
+                const updatedAnalyses = { ...researchAnalyses, [situation.id]: lastAnalysis! };
+                setResearchAnalyses(updatedAnalyses);
                 setChatHistory(prev => [...prev, researchMessage]);
+
+                const newlyResearchedIds = new Set(Object.keys(updatedAnalyses));
+                const allSituationIds = new Set(allTaxSituations.map(s => s.id));
+
+                const allResearched = allTaxSituations.length > 0 && 
+                                      [...allSituationIds].every(id => newlyResearchedIds.has(id));
+
+                if (allResearched) {
+                    const promptForObjectivesMessage: ChatMessage = {
+                        role: 'model',
+                        text: "Great, all the initial research is complete! To make sure we're on the right track, what are your main objectives for this case?"
+                    };
+                    setChatHistory(prev => [...prev, promptForObjectivesMessage]);
+                    setIsAwaitingObjectives(true);
+                }
             } else {
                  throw new Error("Failed to generate a valid research analysis after multiple attempts.");
             }
@@ -458,6 +510,18 @@ export const useAppLogic = (): AppContextType => {
         URL.revokeObjectURL(url);
     };
 
+    const toggleObjectiveCompletion = (objectiveId: string) => {
+        setCompletedObjectives(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(objectiveId)) {
+                newSet.delete(objectiveId);
+            } else {
+                newSet.add(objectiveId);
+            }
+            return newSet;
+        });
+    };
+
     const toggleChecklist = () => setIsChecklistOpen(prev => !prev);
     const closeChecklist = () => setIsChecklistOpen(false);
 
@@ -477,6 +541,9 @@ export const useAppLogic = (): AppContextType => {
         allTaxSituations,
         latestKeyFacts,
         exportModalAnalysis,
+        objectives,
+        completedObjectives,
+        isAwaitingObjectives,
         sendMessage,
         analyzeTaxSituations,
         reAnalyzeKeyFacts,
@@ -492,5 +559,6 @@ export const useAppLogic = (): AppContextType => {
         removeError,
         openExportModal,
         closeExportModal,
+        toggleObjectiveCompletion,
     };
 };

@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -7,6 +8,7 @@ import KeyFactsWidget from './KeyFactsWidget';
 import TaxSituationsWidget from './TaxSituationsWidget';
 import ResearchAnalysisWidget from './ResearchAnalysisWidget';
 import GeneratedDocumentWidget from './GeneratedDocumentWidget';
+import ObjectivesWidget from './ObjectivesWidget';
 
 interface ChatMessageProps {
   msg: ChatMessageType;
@@ -44,6 +46,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ msg }) => {
                     {msg.keyFacts && <KeyFactsWidget facts={msg.keyFacts} />}
                     {msg.taxSituations && <TaxSituationsWidget situations={msg.taxSituations} />}
                     {msg.researchAnalysis && <ResearchAnalysisWidget analysis={msg.researchAnalysis} />}
+                    {msg.objectives && <ObjectivesWidget objectives={msg.objectives} />}
                     {msg.generatedDocument && <GeneratedDocumentWidget document={msg.generatedDocument} />}
                 </div>
             </div>

@@ -1,4 +1,5 @@
 
+
 export const ModelNames = {
     GEMINI_PRO: 'gemini-2.5-pro',
 };
@@ -10,4 +11,6 @@ export const ActionNames = {
     RESEARCH: 'research',
     GENERATE_MEMO: 'generate-memo',
     GENERATE_LETTER: 'generate-letter',
+    GENERATE_OBJECTIVES: 'generate-objectives',
+    REFINE_OBJECTIVES: 'refine-objectives',
 };
