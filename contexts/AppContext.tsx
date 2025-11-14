@@ -29,6 +29,7 @@ export interface AppContextType {
     researchSituationHandler: (situation: TaxSituation) => Promise<void>;
     generateMemoHandler: (analysis: ResearchAnalysis) => Promise<void>;
     generateLetterHandler: (analysis: ResearchAnalysis) => Promise<void>;
+    evaluateObjectiveHandler: (objective: Objective) => Promise<void>;
     handleExportKeyFacts: () => void;
     handleExportTaxSituations: () => void;
     handleExportResearchAnalysis: (analysis: ResearchAnalysis) => void;
@@ -39,6 +40,15 @@ export interface AppContextType {
     openExportModal: (analysis: ResearchAnalysis, situationId: string) => void;
     closeExportModal: () => void;
     toggleObjectiveCompletion: (objectiveId: string) => void;
+    handleSaveProject: () => void;
+    handleLoadProject: (file: File) => void;
+    isLoadConfirmationVisible: boolean;
+    shouldTriggerLoad: boolean;
+    setShouldTriggerLoad: (should: boolean) => void;
+    requestLoadProject: () => void;
+    confirmLoadAndSave: () => void;
+    confirmLoadAndDiscard: () => void;
+    cancelLoad: () => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);

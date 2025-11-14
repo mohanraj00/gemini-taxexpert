@@ -206,6 +206,27 @@ export const generatedDocumentSchema = {
     required: ["content"]
 };
 
+const objectiveSchema: any = {
+    type: Type.OBJECT,
+    properties: {
+        title: {
+            type: Type.STRING,
+            description: "A concise title for the objective (e.g., 'Maximize Section 121 Exclusion', 'Determine Optimal Filing Status')."
+        },
+        description: {
+            type: Type.STRING,
+            description: "A brief, one-sentence explanation of what this objective entails."
+        },
+        subObjectives: {
+            type: Type.ARRAY,
+            description: "A list of more granular, atomic sub-tasks related to this parent objective.",
+            items: {}
+        }
+    },
+    required: ["title", "description"]
+};
+objectiveSchema.properties.subObjectives.items = objectiveSchema; // Recursive definition
+
 export const refinedObjectivesSchema = {
     type: Type.OBJECT,
     properties: {
@@ -216,20 +237,7 @@ export const refinedObjectivesSchema = {
         objectives: {
             type: Type.ARRAY,
             description: "A list of refined, synthesized objectives based on the user's input and the research context. This should be empty if asking clarifying questions.",
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    title: {
-                        type: Type.STRING,
-                        description: "A concise title for the objective (e.g., 'Maximize Section 121 Exclusion', 'Determine Optimal Filing Status')."
-                    },
-                    description: {
-                        type: Type.STRING,
-                        description: "A brief, one-sentence explanation of what this objective entails."
-                    }
-                },
-                required: ["title", "description"]
-            }
+            items: objectiveSchema
         },
         clarifyingQuestions: {
             type: Type.ARRAY,

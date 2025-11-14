@@ -5,6 +5,7 @@ import Header from './components/Header';
 import ChatScreen from './components/ChatScreen';
 import ExportOptionsModal from './components/ExportOptionsModal';
 import { XMarkIcon } from './components/icons/Icons';
+import LoadConfirmationModal from './components/LoadConfirmationModal';
 
 const AppContent: React.FC = () => {
     const { 
@@ -14,6 +15,10 @@ const AppContent: React.FC = () => {
         closeExportModal,
         generateMemoHandler,
         generateLetterHandler,
+        isLoadConfirmationVisible,
+        confirmLoadAndSave,
+        confirmLoadAndDiscard,
+        cancelLoad,
     } = useAppContext();
 
     return (
@@ -46,6 +51,12 @@ const AppContent: React.FC = () => {
                 onClose={closeExportModal}
                 onGenerateMemo={generateMemoHandler}
                 onGenerateLetter={generateLetterHandler}
+            />
+            <LoadConfirmationModal
+                isVisible={isLoadConfirmationVisible}
+                onSave={confirmLoadAndSave}
+                onDiscard={confirmLoadAndDiscard}
+                onCancel={cancelLoad}
             />
         </div>
     );

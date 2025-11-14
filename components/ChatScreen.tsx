@@ -1,4 +1,5 @@
 
+
 import React, { useRef, useEffect } from 'react';
 import { LoadingSpinner } from './icons/Icons';
 import ChecklistPanel from './ChecklistPanel';
@@ -98,7 +99,7 @@ const ChatScreen: React.FC = () => {
       </div>
       
       {/* Desktop Checklist Panel Column */}
-      <div className="hidden md:block md:col-span-1 h-full">
+      <div className="hidden md:block md:col-span-1 h-full flex flex-col overflow-hidden">
         <ChecklistPanel />
       </div>
 

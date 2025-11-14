@@ -13,4 +13,5 @@ export const ActionNames = {
     GENERATE_LETTER: 'generate-letter',
     GENERATE_OBJECTIVES: 'generate-objectives',
     REFINE_OBJECTIVES: 'refine-objectives',
+    EVALUATE_OBJECTIVE: 'evaluate-objective',
 };

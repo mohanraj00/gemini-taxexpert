@@ -49,6 +49,7 @@ export interface Objective {
   id: string;
   title: string;
   description: string;
+  subObjectives?: Objective[];
 }
 
 export interface ChatMessage {
@@ -92,4 +93,14 @@ export interface TaxSituationsResponse {
 export interface AppError {
   id: number;
   message: string;
+}
+
+export interface AppState {
+    version: number;
+    chatHistory: ChatMessage[];
+    researchAnalyses: { [key: string]: ResearchAnalysis };
+    cachedDocuments: { [situationId: string]: { memo?: GeneratedDocument; letter?: GeneratedDocument; } };
+    objectives: Objective[];
+    completedObjectives: string[];
+    isAwaitingObjectives: boolean;
 }

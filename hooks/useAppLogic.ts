@@ -1,8 +1,9 @@
 
 
+
 import { useState, useMemo } from 'react';
-import { ChatMessage, KeyFactCategory, TaxSituation, AppError, ResearchAnalysis, GeneratedDocument, Objective } from '../types';
-import { getAiResponse, generateKeyFacts, generateTaxSituations, researchSituation, regenerateKeyFacts, generateTaxMemo, generateClientLetter, validateResearchAnalysis, refineUserObjectives } from '../services/geminiService';
+import { ChatMessage, KeyFactCategory, TaxSituation, AppError, ResearchAnalysis, GeneratedDocument, Objective, AppState } from '../types';
+import { getAiResponse, generateKeyFacts, generateTaxSituations, researchSituation, regenerateKeyFacts, generateTaxMemo, generateClientLetter, validateResearchAnalysis, refineUserObjectives, evaluateObjective, saveProject, loadProject } from '../services/geminiService';
 import { ActionNames } from '../constants';
 import { fileToBase64 } from '../utils/fileUtils';
 import { AppContextType } from '../contexts/AppContext';
@@ -27,6 +28,8 @@ export const useAppLogic = (): AppContextType => {
     const [objectives, setObjectives] = useState<Objective[]>([]);
     const [completedObjectives, setCompletedObjectives] = useState<Set<string>>(new Set());
     const [isAwaitingObjectives, setIsAwaitingObjectives] = useState<boolean>(false);
+    const [isLoadConfirmationVisible, setIsLoadConfirmationVisible] = useState<boolean>(false);
+    const [shouldTriggerLoad, setShouldTriggerLoad] = useState<boolean>(false);
 
     const openExportModal = (analysis: ResearchAnalysis, situationId: string) => {
         setExportModalAnalysis(analysis);
@@ -62,7 +65,8 @@ export const useAppLogic = (): AppContextType => {
             const fullMessage = `${errorMessage} (Details: ${detail})`;
             addError(fullMessage);
             setChatHistory(prev => [...prev, { role: 'model', text: errorMessage }]);
-            console.error(err);
+            // FIX: Add a descriptive string to the console.error call.
+            console.error(`API call for action '${actionName}' failed:`, err);
         } finally {
             setIsLoading(false);
             setCurrentAction(null);
@@ -120,10 +124,12 @@ export const useAppLogic = (): AppContextType => {
                     data: base64Results[index]
                 }));
             } catch (err) {
-                const errorMessage = "Whoops! I had some trouble with the file(s). Could you try uploading them again?";
+                const detail = err instanceof Error ? err.message : "An unexpected file processing error occurred.";
+                const errorMessage = `Whoops! I had some trouble with the file(s). (Details: ${detail})`;
                 addError(errorMessage);
-                setChatHistory(prev => [...prev, { role: 'model', text: errorMessage }]);
-                console.error(err);
+                setChatHistory(prev => [...prev, { role: 'model', text: "Whoops! I had some trouble with the file(s). Could you try uploading them again?" }]);
+                // FIX: Add a descriptive string to the console.error call.
+                console.error("File processing error in sendMessage:", err);
                 setIsLoading(false);
                 return;
             }
@@ -217,7 +223,8 @@ export const useAppLogic = (): AppContextType => {
             : "Looks like I'm having a little trouble connecting. Please check your connection and try again.";
           addError(errorMessage);
           setChatHistory(prev => [...prev, { role: 'model', text: errorMessage }]);
-          console.error(err);
+          // FIX: Add a descriptive string to the console.error call.
+          console.error("AI response error in sendMessage:", err);
         } finally {
           setIsLoading(false);
           setCurrentAction(null);
@@ -397,6 +404,18 @@ export const useAppLogic = (): AppContextType => {
             }));
         }, `Sorry, I couldn't generate the client letter for "${analysis.situationTitle}". Want to give it another go?`, `${ActionNames.GENERATE_LETTER}-${situationId}`, analysis.situationTitle);
     };
+    
+    const evaluateObjectiveHandler = async (objective: Objective) => {
+        await handleApiCall(async () => {
+            const { content } = await evaluateObjective(chatHistory, researchAnalyses, objective);
+            const aiMessage: ChatMessage = {
+                role: 'model',
+                text: `Here's an analysis for the objective: **${objective.title}**\n\n${content}`,
+            };
+            setChatHistory(prev => [...prev, aiMessage]);
+            setCompletedObjectives(prev => new Set(prev).add(objective.id));
+        }, `I had some trouble evaluating the objective "${objective.title}". Please try again.`, `${ActionNames.EVALUATE_OBJECTIVE}-${objective.id}`, objective.title);
+    };
 
     const keyFactsGenerated = useMemo(() => chatHistory.some(m => m.keyFacts && m.keyFacts.length > 0), [chatHistory]);
     const taxSituationsIdentified = useMemo(() => chatHistory.some(m => m.taxSituations && m.taxSituations.length > 0), [chatHistory]);
@@ -522,6 +541,70 @@ export const useAppLogic = (): AppContextType => {
         });
     };
 
+    const handleSaveProject = async () => {
+        try {
+            const currentState: Omit<AppState, 'version'> = {
+                chatHistory,
+                researchAnalyses,
+                cachedDocuments,
+                objectives,
+                completedObjectives: Array.from(completedObjectives),
+                isAwaitingObjectives,
+            };
+            await saveProject(currentState);
+        } catch (err) {
+            const detail = err instanceof Error ? err.message : "An unexpected error occurred.";
+            addError(`Failed to save project. ${detail}`);
+            // FIX: Add a descriptive string to the console.error call.
+            console.error('Failed to save project:', err);
+        }
+    };
+
+    const handleLoadProject = async (file: File) => {
+        if (!file) return;
+        try {
+            const loadedState = await loadProject(file);
+
+            // Reset and apply the new state
+            setChatHistory(loadedState.chatHistory);
+            setResearchAnalyses(loadedState.researchAnalyses);
+            setCachedDocuments(loadedState.cachedDocuments);
+            setObjectives(loadedState.objectives);
+            setCompletedObjectives(new Set(loadedState.completedObjectives));
+            setIsAwaitingObjectives(loadedState.isAwaitingObjectives);
+            setErrors([]); // Clear any previous errors
+
+        } catch (err) {
+            const detail = err instanceof Error ? err.message : "An unexpected error occurred.";
+            addError(`Failed to load project file. ${detail}`);
+            // FIX: Add a descriptive string to the console.error call.
+            console.error('Failed to load project:', err);
+        }
+    };
+
+    const requestLoadProject = () => {
+        if (chatHistory.length > 0) {
+            setIsLoadConfirmationVisible(true);
+        } else {
+            setShouldTriggerLoad(true);
+        }
+    };
+
+    const confirmLoadAndSave = async () => {
+        await handleSaveProject();
+        setShouldTriggerLoad(true);
+        setIsLoadConfirmationVisible(false);
+    };
+
+    const confirmLoadAndDiscard = () => {
+        setShouldTriggerLoad(true);
+        setIsLoadConfirmationVisible(false);
+    };
+
+    const cancelLoad = () => {
+        setIsLoadConfirmationVisible(false);
+    };
+
     const toggleChecklist = () => setIsChecklistOpen(prev => !prev);
     const closeChecklist = () => setIsChecklistOpen(false);
 
@@ -550,6 +633,7 @@ export const useAppLogic = (): AppContextType => {
         researchSituationHandler,
         generateMemoHandler,
         generateLetterHandler,
+        evaluateObjectiveHandler,
         handleExportKeyFacts,
         handleExportTaxSituations,
         handleExportResearchAnalysis,
@@ -560,5 +644,14 @@ export const useAppLogic = (): AppContextType => {
         openExportModal,
         closeExportModal,
         toggleObjectiveCompletion,
+        handleSaveProject,
+        handleLoadProject,
+        isLoadConfirmationVisible,
+        shouldTriggerLoad,
+        setShouldTriggerLoad,
+        requestLoadProject,
+        confirmLoadAndSave,
+        confirmLoadAndDiscard,
+        cancelLoad,
     };
 };

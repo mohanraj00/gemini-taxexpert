@@ -1,6 +1,91 @@
-import React from 'react';
-import { CheckCircleIcon, XMarkIcon, DocumentDownloadIcon, LoadingSpinner, BookOpenIcon, DocumentDuplicateIcon, DocumentTextIcon, ChatBubbleLeftRightIcon, CheckIcon, CircleIcon } from './icons/Icons';
+import React, { useState } from 'react';
+import { 
+    CheckCircleIcon, XMarkIcon, DocumentDownloadIcon, LoadingSpinner, 
+    BookOpenIcon, DocumentDuplicateIcon, DocumentTextIcon, ChatBubbleLeftRightIcon, 
+    CheckIcon, CircleIcon, SparklesIcon, ChevronDownIcon, ChevronRightIcon
+} from './icons/Icons';
 import { useAppContext } from '../contexts/AppContext';
+import { Objective } from '../types';
+import { ActionNames } from '../constants';
+
+interface ObjectiveItemProps {
+    objective: Objective;
+    level: number;
+}
+
+const ObjectiveItem: React.FC<ObjectiveItemProps> = ({ objective, level }) => {
+    const { 
+        completedObjectives, 
+        toggleObjectiveCompletion, 
+        evaluateObjectiveHandler, 
+        currentAction 
+    } = useAppContext();
+    const [isExpanded, setIsExpanded] = useState(true);
+
+    const isCompleted = completedObjectives.has(objective.id);
+    const isLoading = currentAction === `${ActionNames.EVALUATE_OBJECTIVE}-${objective.id}`;
+    const hasSubObjectives = objective.subObjectives && objective.subObjectives.length > 0;
+
+    return (
+        <li>
+            <div 
+                className="flex items-center justify-between group py-1"
+                style={{ paddingLeft: `${level * 16}px` }}
+            >
+                <div className="flex items-center flex-grow min-w-0">
+                    <button
+                        onClick={() => toggleObjectiveCompletion(objective.id)}
+                        disabled={!!currentAction}
+                        aria-label={`${isCompleted ? 'Mark' : 'Mark'} ${objective.title} as ${isCompleted ? 'incomplete' : 'complete'}`}
+                        className="flex items-center justify-center flex-shrink-0 w-5 h-5 mr-2"
+                    >
+                        {isCompleted ? (
+                            <CheckIcon className="h-4 w-4 text-purple-600" />
+                        ) : (
+                            <CircleIcon className="h-4 w-4 text-zinc-400 group-hover:text-purple-500" />
+                        )}
+                    </button>
+                    
+                    <div className="flex-shrink-0 w-4">
+                        {hasSubObjectives && (
+                            <button onClick={() => setIsExpanded(!isExpanded)} className="text-zinc-400 hover:text-zinc-700">
+                                {isExpanded ? <ChevronDownIcon className="h-3 w-3" /> : <ChevronRightIcon className="h-3 w-3" />}
+                            </button>
+                        )}
+                    </div>
+
+                    <span className={`ml-1 flex-grow text-sm truncate ${isCompleted ? 'text-purple-700 line-through' : 'text-zinc-600'}`}>
+                        {objective.title}
+                    </span>
+                </div>
+                
+                <div className="ml-2 flex-shrink-0">
+                    {isLoading ? (
+                        <LoadingSpinner className="h-5 w-5 text-purple-500 animate-spin" />
+                    ) : !isCompleted ? (
+                        <button
+                            onClick={() => evaluateObjectiveHandler(objective)}
+                            disabled={!!currentAction}
+                            className="p-1 rounded-full text-zinc-400 hover:bg-purple-100 hover:text-purple-600 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                            aria-label={`Evaluate ${objective.title}`}
+                            title="Evaluate Objective"
+                        >
+                            <SparklesIcon className="h-4 w-4" />
+                        </button>
+                    ) : null}
+                </div>
+            </div>
+            {isExpanded && hasSubObjectives && (
+                <ul className="space-y-0.5">
+                    {objective.subObjectives!.map(sub => (
+                        <ObjectiveItem key={sub.id} objective={sub} level={level + 1} />
+                    ))}
+                </ul>
+            )}
+        </li>
+    );
+};
+
 
 interface ChecklistPanelProps {
     onClose?: () => void;
@@ -16,8 +101,6 @@ const ChecklistPanel: React.FC<ChecklistPanelProps> = ({ onClose }) => {
         cachedDocuments,
         currentAction,
         objectives,
-        completedObjectives,
-        toggleObjectiveCompletion,
         handleExportKeyFacts, 
         handleExportTaxSituations, 
         handleExportResearchAnalysis,
@@ -33,13 +116,13 @@ const ChecklistPanel: React.FC<ChecklistPanelProps> = ({ onClose }) => {
             label: 'Pull Key Facts',
             completed: keyFactsGenerated,
             onReAnalyze: reAnalyzeKeyFacts,
-            actionName: 'pull-facts',
+            actionName: ActionNames.PULL_FACTS,
         },
         {
             label: 'Identify Tax Situations',
             completed: taxSituationsIdentified,
             onReAnalyze: analyzeTaxSituations,
-            actionName: 'identify-situations',
+            actionName: ActionNames.IDENTIFY_SITUATIONS,
         }
     ];
 
@@ -59,7 +142,7 @@ const ChecklistPanel: React.FC<ChecklistPanelProps> = ({ onClose }) => {
                     </button>
                 )}
             </div>
-            <div className="flex-grow overflow-y-auto">
+            <div className="flex-grow overflow-y-auto pr-2 -mr-2">
                 <ul className="space-y-2">
                     {steps.map((step, index) => (
                         <li key={index} className="flex items-center justify-between">
@@ -116,7 +199,7 @@ const ChecklistPanel: React.FC<ChecklistPanelProps> = ({ onClose }) => {
                         <ul className="space-y-1">
                             {allTaxSituations.map((situation) => {
                                 const isResearched = researchedSituations.has(situation.id);
-                                const isLoading = currentAction === `research-${situation.id}`;
+                                const isLoading = currentAction === `${ActionNames.RESEARCH}-${situation.id}`;
                                 const isNext = nextSituationToResearch?.id === situation.id;
                                 const isClickable = ((isNext && !isResearched) || isResearched) && !isLoading;
                                 const analysis = researchAnalyses[situation.id];
@@ -220,31 +303,10 @@ const ChecklistPanel: React.FC<ChecklistPanelProps> = ({ onClose }) => {
                 {objectives.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-zinc-200/60">
                         <h3 className="text-sm font-semibold text-zinc-800 mb-2">Case Objectives</h3>
-                        <ul className="space-y-1">
-                            {objectives.map((objective) => {
-                                const isCompleted = completedObjectives.has(objective.id);
-                                return (
-                                    <li key={objective.id} className="flex items-center justify-between group">
-                                        <button
-                                            onClick={() => toggleObjectiveCompletion(objective.id)}
-                                            disabled={!!currentAction}
-                                            aria-label={`${isCompleted ? 'Mark' : 'Mark'} ${objective.title} as ${isCompleted ? 'incomplete' : 'complete'}`}
-                                            className="flex-grow flex items-start text-left text-sm p-1 rounded-lg transition-colors group-hover:bg-purple-50 cursor-pointer disabled:opacity-60 w-full"
-                                        >
-                                            <div className="relative w-4 h-4 mr-2 mt-0.5 flex items-center justify-center flex-shrink-0">
-                                                {isCompleted ? (
-                                                    <CheckIcon className="h-4 w-4 text-purple-600" />
-                                                ) : (
-                                                    <CircleIcon className="h-4 w-4 text-zinc-400 group-hover:text-purple-500" />
-                                                )}
-                                            </div>
-                                            <span className={`flex-grow ${isCompleted ? 'text-purple-700 line-through' : 'text-zinc-600'}`}>
-                                                {objective.title}
-                                            </span>
-                                        </button>
-                                    </li>
-                                );
-                            })}
+                        <ul className="space-y-0.5">
+                           {objectives.map((objective) => (
+                                <ObjectiveItem key={objective.id} objective={objective} level={0} />
+                           ))}
                         </ul>
                     </div>
                 )}
